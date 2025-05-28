@@ -1,0 +1,112 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.navbar {
+    position: sticky;
+    top: 0;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    z-index: 1000;
+}
+
+.navbar-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.navbar-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.navbar-buttons a {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f0f0f0;
+    transition: all 0.2s ease-in-out;
+}
+
+.navbar-buttons a:hover {
+    background-color: #e2e6ea;
+    border-color: #999;
+}
+
+.katalog-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.katalog-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.kategorija {
+    margin-bottom: 2rem;
+}
+
+.kategorija h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.mesavina-card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+.mesavina-card:hover {
+    transform: translateY(-4px);
+    background-color: #f9f9f9;
+}
+
+.mesavina-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.mesavina-detalji {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 100px;
+}
+
+.sastojak-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.sastojak-item img {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    object-fit: cover;
+}
