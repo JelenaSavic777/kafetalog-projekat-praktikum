@@ -4,7 +4,8 @@ import Dashboard from './pages/Dashboard';
 import { AdminPanel } from './pages/AdminPanel';
 import Katalog from './pages/Katalog';
 import ListaMesavina from './pages/ListaMesavina';
-import './styles/index.css';
+import Kontakt from "./pages/Kontakt";
+//import './styles/index.css';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/admin" element={<Dashboard />} />
         <Route path="/admin/mesavine/novi" element={<AdminPanel />} />
         <Route path="/admin/mesavine/lista" element={<ListaMesavina />} />
+                <Route path="/kontakt" element={<Kontakt />} />
       </Routes>
     </BrowserRouter>
   );

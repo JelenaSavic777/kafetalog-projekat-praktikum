@@ -94,8 +94,8 @@ const Katalog = () => {
                 {kategorija.mesavine.map(m => (
                   <div
                     key={m.id}
+                    className="mesavina-kartica"
                     onClick={() => setSelectedMesavina(m)}
-                    style={{ cursor: 'pointer' }}
                   >
                     <img src={m.fotografija} alt={m.naziv} />
                     <h3>{m.naziv}</h3>
@@ -107,7 +107,7 @@ const Katalog = () => {
           ))}
         </div>
 
-        <div>
+        <div className="mesavina-detalji">
           {selectedMesavina ? (
             <div>
               <h2>{selectedMesavina.naziv}</h2>
@@ -116,7 +116,7 @@ const Katalog = () => {
               <h3>Sastojci:</h3>
               <ul>
                 {selectedMesavina.sastojci.map(sastojak => (
-                  <li key={sastojak.id}>
+                  <li key={sastojak.id} className="sastojak-item">
                     <img src={sastojak.fotografija} alt={sastojak.naziv} />
                     <div>
                       <div>{sastojak.naziv}</div>
@@ -131,6 +131,16 @@ const Katalog = () => {
           )}
         </div>
       </div>
+
+      <footer className="footer-bar">
+        <div>
+          <p><strong>Kafetalog d.o.o.</strong></p>
+          <p>Adresa: Ulica Primer 123, Beograd</p>
+          <p>Telefon: +381 11 123 4567</p>
+          <p>Email: kontakt@kafetalog.rs</p>
+        </div>
+        <button onClick={() => navigate('/kontakt')}>Kontakt stranica</button>
+      </footer>
     </div>
   );
 };
