@@ -1,33 +1,39 @@
 ﻿import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import path from 'path';
-
 import authRoutes from './routes/authRoutes';
 import blendRoutes from './routes/blend';
+import mesavineRoutes from './routes/mesavine';
 import katalogRoutes from './routes/katalog';
 
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.json());
 
-// API rute
-app.use('/api/auth', authRoutes);
-app.use('/api/mesavine', blendRoutes); 
-app.use('/api/katalog', katalogRoutes); 
+// Helper funkcija za logovanje svih ruta
+function logRoutes(stack: any, prefix = '') {
+  stack.forEach((layer: any) => {
+    if (layer.route) {
+      const path = prefix + layer.route.path;
+      const methods = Object.keys(layer.route.methods).join(', ').toUpperCase();
+      console.log(`Ruta: ${methods} ${path}`);
+    } else if (layer.name === 'router' && layer.handle.stack) {
+      logRoutes(layer.handle.stack, prefix + (layer.regexp.source !== '^\\/?$' ? layer.regexp.source.replace('\\/?', '').replace('^', '').replace('$', '') : ''));
+    }
+  });
+}
 
-// Serviranje frontend aplikacije
-app.use(express.static(path.join(__dirname, '../../frontend/dist')));
-
-// Fallback ruta za React Router
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../frontend/dist/index.html'));
+app.get('/', (req, res) => {
+  res.send('Backend radi');
 });
 
+app.use('/api/auth', authRoutes);
+app.use('/api/blend', blendRoutes);
+app.use('/api/mesavine', mesavineRoutes);
+app.use('/api/katalog', katalogRoutes);
+
+app._router && logRoutes(app._router.stack);
+
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server pokrenut na portu ${PORT}`);
 });
