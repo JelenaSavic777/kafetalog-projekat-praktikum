@@ -5,19 +5,16 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    // Dohvati sve mešavine
     const [mesavine] = await db.execute(
       `SELECT id, naziv, opis, fotografija, cena FROM mesavina WHERE prikazana = 1`
     );
 
-    // Dohvati sastojke za svaku mešavinu
     const [sastojci] = await db.execute(
       `SELECT s.id, s.naziv, s.fotografija, ms.udeo, ms.mesavinaId
        FROM sastojak s
        JOIN mesavina_sastojak ms ON s.id = ms.sastojakId`
     );
 
-    // Dohvati kategorije za mešavine
     const [kategorije] = await db.execute(
       `SELECT km.mesavinaId, k.naziv
        FROM kategorija k

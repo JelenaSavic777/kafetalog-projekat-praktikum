@@ -3,14 +3,25 @@ import authRoutes from './routes/authRoutes';
 import blendRoutes from './routes/blend';
 import mesavineRoutes from './routes/mesavine';
 import katalogRoutes from './routes/katalog';
+import cors from 'cors';
 
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 4000;
 
 app.use(express.json());
 
-// Helper funkcija za logovanje svih ruta
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || origin.startsWith('http://localhost:')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
+
 function logRoutes(stack: any, prefix = '') {
   stack.forEach((layer: any) => {
     if (layer.route) {

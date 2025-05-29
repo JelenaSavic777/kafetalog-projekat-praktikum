@@ -1,4 +1,3 @@
-// src/routes/katalog.ts
 import { Router } from 'express';
 import db from '../db';
 
@@ -30,27 +29,28 @@ interface Sastojak {
 
 router.get('/', async (req, res) => {
   try {
-    const [kategorijeRows] = await db.execute('SELECT id, naziv FROM kategorija');
+    // Uzmi sve kategorije
+    const [kategorijeRows] = await db.execute('SELECT id, naziv FROM kategorije');
     const kategorije = kategorijeRows as { id: number; naziv: string }[];
 
-    // Dohvati mešavine sa pripadajućim kategorijama
+    // Uzmi sve mešavine koje nisu sakrivene sa njihovim kategorijama
     const [mesavineRows] = await db.execute(`
-      SELECT m.id, m.naziv, m.opis, m.fotografija, m.cena, km.kategorijaId
-      FROM mesavina m
-      JOIN kategorija_mesavina km ON m.id = km.mesavinaId
-      WHERE m.prikazana = 1
+      SELECT m.id, m.naziv, m.opis, m.fotografija, m.ukupna_cena AS cena, mk.kategorija_id AS kategorijaId
+      FROM mesavine m
+      JOIN mesavina_kategorije mk ON m.id = mk.mesavina_id
+      WHERE m.sakriven = 0
     `);
     const mesavine = mesavineRows as Mesavina[];
 
-    // Dohvati sastojke i njihove udele za mešavine
+    // Uzmi sastojke za mešavine i njihove udele
     const [sastojciRows] = await db.execute(`
-      SELECT s.id, s.naziv, s.fotografija, ms.udeo, ms.mesavinaId
-      FROM sastojak s
-      JOIN mesavina_sastojak ms ON s.id = ms.sastojakId
+      SELECT s.id, s.naziv, s.fotografija, ms.udeo, ms.mesavina_id AS mesavinaId
+      FROM sastojci s
+      JOIN mesavina_sastojci ms ON s.id = ms.sastojak_id
     `);
     const sastojci = sastojciRows as Sastojak[];
 
-    // Grupisanje mešavina po kategorijama
+    // Grupisanje mešavina po kategorijama, i dodavanje sastojaka svakoj mešavini
     const kategorijeMap: Kategorija[] = kategorije.map(k => {
       const mesavineUKategoriji = mesavine
         .filter(m => m.kategorijaId === k.id)
