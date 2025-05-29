@@ -59,18 +59,18 @@ const Katalog = () => {
     fetchKatalog();
   }, []);
 
-  // Mešavine iz izabrane kategorije
-  const mesavineIzabraneKategorije =
-    kategorije.find(k => k.id === selectedCategoryId)?.mesavine ?? [];
+const mesavineIzabraneKategorije =
+  kategorije.find(k => k.id === selectedCategoryId)?.mesavine ?? [];
 
-  // Filtriramo mešavine po nazivu ili opisu sastojka
-  const filtriraneMesavine = mesavineIzabraneKategorije.filter(mesavina =>
-    filter === '' ||
-    mesavina.sastojci.some(s =>
-      s.naziv.toLowerCase().includes(filter.toLowerCase()) ||
-      s.opis.toLowerCase().includes(filter.toLowerCase())
-    )
-  );
+// Filtriramo mešavine po nazivu ili opisu sastojka
+const filtriraneMesavine = mesavineIzabraneKategorije.filter(mesavina =>
+  filter === '' ||
+  mesavina.sastojci.some(s =>
+    s.naziv.toLowerCase().includes(filter.toLowerCase()) ||
+    (s.opis && s.opis.toLowerCase().includes(filter.toLowerCase()))
+  )
+);
+
 
   return (
     <div className="katalog-wrapper">
