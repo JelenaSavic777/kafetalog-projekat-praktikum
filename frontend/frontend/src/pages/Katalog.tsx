@@ -18,7 +18,7 @@ type Mesavina = {
   naziv: string;
   opis: string;
   fotografija: string;
-  cena: number;       
+  cena: number;
   sastojci: Sastojak[];
   kategorije: string[];
 };
@@ -27,12 +27,13 @@ type Kategorija = {
   id: number;
   naziv: string;
   mesavine: Mesavina[];
-  opis: string;      
+  opis: string;
 };
 
 const Katalog = () => {
   const [kategorije, setKategorije] = useState<Kategorija[]>([]);
   const [filter, setFilter] = useState('');
+  const [filterMode, setFilterMode] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedMesavina, setSelectedMesavina] = useState<Mesavina | null>(null);
   const [loading, setLoading] = useState(false);
@@ -59,18 +60,33 @@ const Katalog = () => {
     fetchKatalog();
   }, []);
 
-const mesavineIzabraneKategorije =
-  kategorije.find(k => k.id === selectedCategoryId)?.mesavine ?? [];
+  const sveMesavine = kategorije.flatMap(k => k.mesavine);
 
-// Filtriramo mešavine po nazivu ili opisu sastojka
-const filtriraneMesavine = mesavineIzabraneKategorije.filter(mesavina =>
-  filter === '' ||
-  mesavina.sastojci.some(s =>
-    s.naziv.toLowerCase().includes(filter.toLowerCase()) ||
-    (s.opis && s.opis.toLowerCase().includes(filter.toLowerCase()))
-  )
-);
+  const filtriraneMesavine = sveMesavine.filter(mesavina => {
+    if (filter.trim() === '') return true;
 
+    const f = filter.toLowerCase();
+
+    if (mesavina.naziv.toLowerCase().includes(f)) return true;
+    if (mesavina.opis && mesavina.opis.toLowerCase().includes(f)) return true;
+    if (mesavina.sastojci.some(s =>
+      s.naziv.toLowerCase().includes(f) ||
+      (s.opis && s.opis.toLowerCase().includes(f))
+    )) return true;
+    if (mesavina.kategorije?.some(kat => kat.toLowerCase().includes(f))) return true;
+
+    return false;
+  });
+
+  const filtriraneKategorije = kategorije.filter(kat => {
+    if (filter.trim() === '') return false;
+    const f = filter.toLowerCase();
+return kat.naziv.toLowerCase().includes(f) || (typeof kat.opis === 'string' && kat.opis.toLowerCase().includes(f));
+  });
+
+  const mesavineZaPrikaz = filterMode
+    ? filtriraneMesavine
+    : kategorije.find(k => k.id === selectedCategoryId)?.mesavine ?? [];
 
   return (
     <div className="katalog-wrapper">
@@ -82,57 +98,158 @@ const filtriraneMesavine = mesavineIzabraneKategorije.filter(mesavina =>
 
       <h1>Katalog Kafe</h1>
 
-      <input
-        type="text"
-        placeholder="Filtriraj po sastojku (naziv ili opis)..."
-        className="filter-input"
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-      />
+      <div className="filter-wrapper">
+        <input
+          type="text"
+          placeholder="Filtriraj po nazivu, opisu, sastojcima ili kategoriji..."
+          className="filter-input"
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              setFilterMode(true);
+              setSelectedMesavina(null);
+            }
+          }}
+        />
+        <button
+          className="filter-button"
+          onClick={() => {
+            if (filter.trim() !== '') {
+              setFilterMode(true);
+              setSelectedMesavina(null);
+            }
+          }}
+          title="Pretraži"
+          aria-label="Pretraži"
+        >
+          🔍
+        </button>
+
+        {filterMode && filter.trim() !== '' && (
+          <div className="filter-info">
+            <p>
+              Pronađeno: {filtriraneMesavine.length} mešavina i {filtriraneKategorije.length} kategorija za "{filter}"
+            </p>
+            <button
+              onClick={() => {
+                setFilter('');
+                setFilterMode(false);
+                setSelectedMesavina(null);
+              }}
+            >
+              Očisti filter
+            </button>
+          </div>
+        )}
+      </div>
 
       {loading && <p>Učitavanje...</p>}
       {error && <p className="error">{error}</p>}
 
       <div className="grid-container">
-        {/* LEVO: kategorije */}
-        <div className="kategorije-lista">
-          <h3>Kategorije</h3>
-          {kategorije.map(k => (
-            <div
-              key={k.id}
-              className={`kategorija-item ${selectedCategoryId === k.id ? 'aktivna' : ''}`}
-              onClick={() => {
-                setSelectedCategoryId(k.id);
-                setSelectedMesavina(null);
-                setFilter('');
-              }}
-            >
-              <div className="kategorija-naziv">{k.naziv}</div>
-              <div className="kategorija-opis">{k.opis}</div>
-            </div>
-          ))}
-        </div>
+        {/* LEVO: kategorije samo ako nije filterMode */}
+        {!filterMode && (
+          <div className="kategorije-lista">
+            <h3>Kategorije</h3>
+            {kategorije.map(k => (
+              <div
+                key={k.id}
+                className={`kategorija-item ${selectedCategoryId === k.id ? 'aktivna' : ''}`}
+                onClick={() => {
+                  setSelectedCategoryId(k.id);
+                  setSelectedMesavina(null);
+                  setFilter('');
+                  setFilterMode(false);
+                }}
+              >
+                <div className="kategorija-naziv">{k.naziv}</div>
+                <div className="kategorija-opis">{k.opis}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
-        {/* SREDINA: lista mešavina izabrane kategorije */}
+        
         <div className="mesavine-lista">
-          {filtriraneMesavine.length === 0 && !loading && (
-            <p>Nema mešavina za prikaz.</p>
+          {filterMode && (
+            <>
+              {/* Prikaži filtrirane kategorije */}
+              {filtriraneKategorije.length > 0 && (
+                <div className="filtrirane-kategorije">
+                  <h3>Filtrirane kategorije:</h3>
+                  <ul>
+                    {filtriraneKategorije.map(k => (
+                      <li
+                        key={k.id}
+                        style={{ cursor: 'pointer', fontWeight: 'bold', marginBottom: 6 }}
+                        onClick={() => {
+                          setSelectedCategoryId(k.id);
+                          setFilter('');
+                          setFilterMode(false);
+                          setSelectedMesavina(null);
+                        }}
+                      >
+                        {k.naziv}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Prikaži filtrirane mešavine */}
+              {filtriraneMesavine.length > 0 && (
+                <div className="filtrirane-mesavine">
+                  <h3>Filtrirane mešavine:</h3>
+                  <div className="mesavine-lista-grid">
+                    {filtriraneMesavine.map(m => (
+                      <div
+                        key={m.id}
+                        className={`mesavina-kartica ${selectedMesavina?.id === m.id ? 'aktivna' : ''}`}
+                        onClick={() => setSelectedMesavina(m)}
+                      >
+                        <img src={m.fotografija} alt={m.naziv} />
+                        <h3>{m.naziv}</h3>
+                        <p>{m.opis}</p>
+                        <p>
+                          <strong>Cena:</strong>{' '}
+                          {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Ako nema rezultata */}
+              {filtriraneMesavine.length === 0 && filtriraneKategorije.length === 0 && (
+                <p>Nema rezultata za "{filter}"</p>
+              )}
+            </>
           )}
-          {filtriraneMesavine.map(m => (
-            <div
-              key={m.id}
-              className={`mesavina-kartica ${selectedMesavina?.id === m.id ? 'aktivna' : ''}`}
-              onClick={() => setSelectedMesavina(m)}
-            >
-              <img src={m.fotografija} alt={m.naziv} />
-              <h3>{m.naziv}</h3>
-              <p>{m.opis}</p>
-              <p>
-                <strong>Cena:</strong>{' '}
-                {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
-              </p>
-            </div>
-          ))}
+
+          {!filterMode && (
+            <>
+              {mesavineZaPrikaz.length === 0 && !loading && (
+                <p>Nema mešavina za prikaz.</p>
+              )}
+              {mesavineZaPrikaz.map((m, index) => (
+                <div
+                  key={`${m.id}-${index}`}
+                  className={`mesavina-kartica ${selectedMesavina?.id === m.id ? 'aktivna' : ''}`}
+                  onClick={() => setSelectedMesavina(m)}
+                >
+                  <img src={m.fotografija} alt={m.naziv} />
+                  <h3>{m.naziv}</h3>
+                  <p>{m.opis}</p>
+                  <p>
+                    <strong>Cena:</strong>{' '}
+                    {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
+                  </p>
+                </div>
+              ))}
+            </>
+          )}
         </div>
 
         {/* DESNO: detalji selektovane mešavine */}
@@ -170,7 +287,7 @@ const filtriraneMesavine = mesavineIzabraneKategorije.filter(mesavina =>
       <footer className="footer-bar">
         <div>
           <p><strong>Kafetalog d.o.o.</strong></p>
-          <p>Adresa: Ulica Primer 123, Beograd</p>
+          <p>Adresa: Ulica Španskih boraca 18, Beograd</p>
           <p>Telefon: +381 11 123 4567</p>
           <p>Email: kontakt@kafetalog.rs</p>
         </div>
