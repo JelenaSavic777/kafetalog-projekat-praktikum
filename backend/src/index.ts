@@ -1,5 +1,5 @@
 import express from 'express';
-import blendsRouter from './routes/blend'; 
+import mesavineRouter from './routes/mesavine'; 
 import cors from 'cors';
 
 const app = express();
@@ -9,8 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Registruj ruter
-app.use('/api/mesavine', blendsRouter); 
-
+app.use('/api/mesavine', mesavineRouter); 
 app.listen(PORT, () => {
   console.log(`Server radi na http://localhost:${PORT}`);
 });
