@@ -48,6 +48,7 @@ const Katalog = () => {
         const res = await fetch('http://localhost:4000/api/katalog');
         if (!res.ok) throw new Error('Greška pri učitavanju podataka');
         const data = await res.json();
+
         setKategorije(data);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Nešto je pošlo po zlu');
@@ -185,8 +186,9 @@ const Katalog = () => {
           <h3 className="text-lg font-semibold">{m.naziv}</h3>
           <p className="text-sm text-gray-600">{m.opis}</p>
           <p className="font-medium mt-1">
-            Cena: {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
-          </p>
+  Cena: {m.cena != null && !isNaN(Number(m.cena)) ? `${Number(m.cena).toFixed(2)} RSD` : 'N/A'}
+</p>
+
         </div>
       </div>
     ))}
@@ -203,12 +205,12 @@ const Katalog = () => {
           alt={selectedMesavina.naziv}
           className="w-full h-48 object-cover rounded mb-4"
         />
+        
         <p className="mb-2">{selectedMesavina.opis}</p>
-        <p className="text-lg font-semibold text-green-700 mb-4">
-          Cena: {typeof selectedMesavina.cena === 'number'
-            ? selectedMesavina.cena.toFixed(2)
-            : Number(selectedMesavina.cena || 0).toFixed(2)} RSD
-        </p>
+<p className="text-sm text-gray-600">
+  Cena: {selectedMesavina.cena != null ? `${selectedMesavina.cena} RSD` : 'N/A'}
+</p>
+
 
         <h3 className="font-semibold text-xl mb-2">Sastojci</h3>
         <ul className="space-y-3">
@@ -225,6 +227,7 @@ const Katalog = () => {
     )}
   </div>
 </div>
+
 
 
       <footer className="footer-bar">

@@ -85,10 +85,10 @@ router.post(
         ukupnaCena += (cena * s.udeo) / 100;
       }
 
-      const [result]: any = await db.execute(
-        'INSERT INTO mesavine (sifra, naziv, opis, fotografija, ukupna_cena) VALUES (?, ?, ?, ?, ?)',
-        [sifra, naziv, opis, fotografija, ukupnaCena]
-      );
+const [result]: any = await db.execute(
+  'INSERT INTO mesavine (sifra, naziv, opis, fotografija, ukupna_cena, sakriven) VALUES (?, ?, ?, ?, ?, ?)',
+  [sifra, naziv, opis, fotografija, ukupnaCena, 0]
+);
 
       const mesavinaId = result.insertId;
 
