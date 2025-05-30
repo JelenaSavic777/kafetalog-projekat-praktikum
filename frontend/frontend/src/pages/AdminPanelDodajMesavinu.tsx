@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Sastojak {
   id: number;
@@ -11,6 +12,8 @@ interface Kategorija {
 }
 
 export function AdminPanel() {
+  const navigate = useNavigate();
+
   const [sifra, setSifra] = useState('');
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
@@ -40,17 +43,26 @@ export function AdminPanel() {
     setSastojci(novi);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch('/api/mesavine', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sifra, naziv, opis, fotografija, sastojci, kategorije }),
-    });
-    const data = await res.json();
-    if (res.ok) alert('Mešavina uspešno dodata');
-    else alert(data.error || 'Greška');
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  const res = await fetch('/api/mesavine', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sifra, naziv, opis, fotografija, sastojci, kategorije }),
+  });
+  const data = await res.json();
+  if (res.ok) {
+    alert('Mešavina uspešno dodata');
+    
+    // Otvori katalog u novom tabu
+    window.open('/', '_blank');
+
+    // Preusmeri na admin dashboard
+    navigate('/admin');
+  } else {
+    alert(data.error || 'Greška prilikom dodavanja');
+  }
+};
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

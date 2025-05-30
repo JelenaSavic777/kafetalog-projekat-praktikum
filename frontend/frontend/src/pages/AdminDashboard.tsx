@@ -19,7 +19,6 @@ type Mesavina = {
   sastojci: Sastojak[];
 };
 
-// Tip za sirove podatke sa API-ja
 type RawMesavina = {
   id: number;
   naziv: string;
@@ -42,10 +41,11 @@ export default function Dashboard() {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
+    } else {
+      fetchMesavine(); // automatsko učitavanje
     }
   }, [navigate]);
 
-  // Funkcija za učitavanje mešavina
   const fetchMesavine = async () => {
     setLoading(true);
     setError(null);
