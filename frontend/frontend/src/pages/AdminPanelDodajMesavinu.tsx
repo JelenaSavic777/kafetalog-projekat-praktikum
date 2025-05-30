@@ -19,8 +19,7 @@ export function AdminPanelDodajMesavinu() {
   const [opis, setOpis] = useState('');
   const [fotografija, setFotografija] = useState('');
   const [sastojci, setSastojci] = useState<{ id: number; udeo: number }[]>([]);
-  const [kategorije, setKategorije] = useState<number[]>([]);
-  const [novaKategorija] = useState('');
+  const [kategorijaId, setKategorijaId] = useState<number | null>(null);
 
   const [sviSastojci, setSviSastojci] = useState<Sastojak[]>([]);
   const [sveKategorije, setSveKategorije] = useState<Kategorija[]>([]);
@@ -47,6 +46,11 @@ export function AdminPanelDodajMesavinu() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (kategorijaId === null) {
+      alert('Molimo odaberite kategoriju.');
+      return;
+    }
+
     const totalUdeo = sastojci.reduce((sum, s) => sum + s.udeo, 0);
     if (totalUdeo !== 100) {
       alert(`Ukupan udeo sastojaka mora biti 100%. Trenutno: ${totalUdeo}%`);
@@ -58,24 +62,6 @@ export function AdminPanelDodajMesavinu() {
       return;
     }
 
-    const finalKategorije = [...kategorije];
-
-    if (novaKategorija.trim()) {
-      const res = await fetch('/api/kategorije', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ naziv: novaKategorija }),
-      });
-
-      if (res.ok) {
-        const nova = await res.json();
-        finalKategorije.push(nova.id);
-      } else {
-        alert('Greška pri dodavanju nove kategorije.');
-        return;
-      }
-    }
-
     const res = await fetch('/api/mesavine', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -84,7 +70,7 @@ export function AdminPanelDodajMesavinu() {
         naziv,
         opis,
         sastojci,
-        kategorije: finalKategorije,
+        kategorije: [kategorijaId],
         fotografija: fotografija.trim() !== '' ? fotografija.trim() : null,
       }),
     });
@@ -99,8 +85,7 @@ export function AdminPanelDodajMesavinu() {
         alert(`Neočekivan odgovor servera:\n${text}`);
         return;
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (err) {
+    } catch{
       alert('Greška prilikom obrade odgovora sa servera.');
       return;
     }
@@ -130,7 +115,6 @@ export function AdminPanelDodajMesavinu() {
               placeholder="URL fotografije (opciono)"
               className="border p-3 rounded-lg w-full col-span-2"
             />
-            {/* Pregled slike ako postoji */}
             {fotografija.trim() && (
               <img
                 src={fotografija}
@@ -167,26 +151,29 @@ export function AdminPanelDodajMesavinu() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-2">Kategorije:</h3>
-            <div className="flex flex-wrap gap-4">
-              {sveKategorije.map((k) => (
-                <label key={k.id} className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    value={k.id}
-                    checked={kategorije.includes(k.id)}
-                    onChange={(e) => {
-                      const id = Number(e.target.value);
-                      setKategorije((prev) =>
-                        prev.includes(id) ? prev.filter((k) => k !== id) : [...prev, id]
-                      );
-                    }}
-                  />
-                  {k.naziv}
-                </label>
-              ))}
-            </div>
-          </div>
+  <h3 className="font-semibold mb-2">Kategorija:</h3>
+  {sveKategorije.length === 0 ? (
+    <p className="text-gray-500">Učitavanje kategorija...</p>
+  ) : (
+    <select
+      value={kategorijaId ?? ''}
+      onChange={(e) => {
+        const selected = e.target.value;
+        setKategorijaId(selected ? Number(selected) : null);
+      }}
+      className="border p-3 rounded-lg w-full"
+      required
+    >
+      <option value="">Odaberi kategoriju</option>
+      {sveKategorije.map((k) => (
+        <option key={k.id} value={k.id}>
+          {k.naziv}
+        </option>
+      ))}
+    </select>
+  )}
+</div>
+
 
           <button type="submit" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
             Sačuvaj mešavinu
