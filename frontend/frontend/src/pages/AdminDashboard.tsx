@@ -94,6 +94,8 @@ export default function AdminDashboard() {
   };
 
   const izmeniUdeo = (index: number, noviUdeo: number) => {
+    if (isNaN(noviUdeo)) noviUdeo = 0;
+
     setFormState(prev => {
       const noviSastojci = [...prev.sastojci];
       noviSastojci[index] = { ...noviSastojci[index], udeo: noviUdeo };
@@ -104,24 +106,24 @@ export default function AdminDashboard() {
   const sacuvajIzmenu = async (id: number) => {
     const totalUdeo = formState.sastojci.reduce((sum, s) => sum + s.udeo, 0);
     if (Math.abs(totalUdeo - 100) > 0.01) {
-  alert('Ukupan udeo sastojaka mora biti tačno 100%!');
-  return;
-}
-
+      alert('Ukupan udeo sastojaka mora biti tačno 100%!');
+      return;
+    }
 
     try {
       const res = await fetch(`/api/mesavine/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-             body: JSON.stringify({
-        naziv: formState.naziv,
-        opis: formState.opis,
-        sastojci: formState.sastojci.map(s => ({
-          id: s.id,
-          udeo: s.udeo,
-        })),
-      }),
-
+        body: JSON.stringify({
+          naziv: formState.naziv,
+          opis: formState.opis,
+          fotografija: formState.fotografija,
+          kategorije: formState.kategorije,
+          sastojci: formState.sastojci.map(s => ({
+            id: s.id,
+            udeo: s.udeo,
+          })),
+        }),
       });
 
       if (!res.ok) throw new Error('Greška pri izmeni');
@@ -129,7 +131,17 @@ export default function AdminDashboard() {
       const updated = await res.json();
       setMesavine(prev =>
         prev.map(m =>
-          m.id === id ? { ...m, naziv: formState.naziv, opis: formState.opis, cena: updated.cena } : m
+          m.id === id
+            ? {
+                ...m,
+                naziv: formState.naziv,
+                opis: formState.opis,
+                fotografija: formState.fotografija,
+                kategorije: formState.kategorije,
+                sastojci: formState.sastojci,
+                cena: updated.cena,
+              }
+            : m
         )
       );
       setEditingId(null);
@@ -192,12 +204,15 @@ export default function AdminDashboard() {
                           <input
                             type="number"
                             value={s.udeo}
-                            onChange={(e) => izmeniUdeo(index, parseInt(e.target.value))}
+                            onChange={(e) => izmeniUdeo(index, Number(e.target.value))}
                             className="udeo-input"
                           />%
                         </li>
                       ))}
                     </ul>
+                    <p className="text-sm mt-2">
+                      Ukupan udeo: {formState.sastojci.reduce((sum, s) => sum + s.udeo, 0)}%
+                    </p>
                     <button onClick={() => sacuvajIzmenu(m.id)} className="btn-save">💾 Sačuvaj</button>
                   </>
                 ) : (
