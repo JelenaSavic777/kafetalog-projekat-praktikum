@@ -40,6 +40,7 @@ const Katalog = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+
   useEffect(() => {
     const fetchKatalog = async () => {
       setLoading(true);
@@ -92,8 +93,6 @@ return kat.naziv.toLowerCase().includes(f) || (typeof kat.opis === 'string' && k
     <div className="katalog-wrapper">
       <div className="nav-bar">
         <button onClick={() => navigate('/login')}>Login</button>
-        <button onClick={() => navigate('/admin/mesavine/novi')}>Dodaj mešavinu</button>
-        <button onClick={() => navigate('/admin/mesavine/lista')}>Lista mešavina</button>
       </div>
 
       <h1>Katalog Kafe</h1>
