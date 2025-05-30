@@ -64,35 +64,33 @@ const Katalog = () => {
     );
 
   const filtriraneMesavine = sveMesavine.filter(mesavina => {
-    if (filter.trim() === '') return true;
-    const f = filter.toLowerCase();
-    if (mesavina.naziv.toLowerCase().includes(f)) return true;
-    if (mesavina.opis && mesavina.opis.toLowerCase().includes(f)) return true;
-    if (mesavina.sastojci.some(s =>
-      s.naziv.toLowerCase().includes(f) ||
-      (s.opis && s.opis.toLowerCase().includes(f))
-    )) return true;
-    if (mesavina.kategorije?.some(kat => kat.toLowerCase().includes(f))) return true;
-    return false;
+    const f = filter.toLowerCase().trim();
+    if (f === '') return true;
+    return (
+      mesavina.naziv.toLowerCase().includes(f) ||
+      mesavina.opis?.toLowerCase().includes(f) ||
+      mesavina.kategorije?.some(k => k.toLowerCase().includes(f)) ||
+      mesavina.sastojci.some(s =>
+        s.naziv.toLowerCase().includes(f) || s.opis?.toLowerCase().includes(f)
+      )
+    );
   });
 
-  const filtriraneKategorije = kategorije.filter(kat => {
-    if (filter.trim() === '') return false;
-    const f = filter.toLowerCase();
-    return kat.naziv.toLowerCase().includes(f) || (typeof kat.opis === 'string' && kat.opis.toLowerCase().includes(f));
-  });
+  const filtriraneKategorije = kategorije.filter(k =>
+    filter.trim() !== '' && (
+      k.naziv.toLowerCase().includes(filter.toLowerCase()) ||
+      k.opis?.toLowerCase().includes(filter.toLowerCase())
+    )
+  );
 
   const mesavineZaPrikaz = filterMode
     ? filtriraneMesavine
     : selectedCategoryId === null
-      ? sveMesavine
-      : kategorije.find(k => k.id === selectedCategoryId)?.mesavine
-          ?.filter((mesavina, index, self) =>
-            index === self.findIndex(m => m.id === mesavina.id)
-          ) ?? [];
+    ? sveMesavine
+    : kategorije.find(k => k.id === selectedCategoryId)?.mesavine ?? [];
 
   return (
-    <div className="katalog-wrapper" style={{display: 'flex', flexDirection: 'column', minHeight: '100vh'}}>
+    <div className="katalog-wrapper">
       <div className="nav-bar">
         <button onClick={() => navigate('/login')}>Login</button>
       </div>
@@ -121,8 +119,6 @@ const Katalog = () => {
               setSelectedMesavina(null);
             }
           }}
-          title="Pretraži"
-          aria-label="Pretraži"
         >
           🔍
         </button>
@@ -148,159 +144,90 @@ const Katalog = () => {
       {loading && <p className="loading-text">Učitavanje...</p>}
       {error && <p className="error-text">{error}</p>}
 
-      {/* Glavni grid sa 3 kolone */}
-      <div className="grid-container" style={{flex: 1, display: 'grid', gridTemplateColumns: '1fr 2fr 2fr', gap: '1rem', padding: '1rem'}}>
-        {!filterMode && (
-          <div className="kategorije-lista" style={{borderRight: '1px solid #ccc', paddingRight: '1rem'}}>
-            <h3>Kategorije</h3>
-            <div
-              key={0}
-              className={`kategorija-item ${selectedCategoryId === null ? 'aktivna' : ''}`}
+<div className="flex gap-6 px-6">
+  <div className="mesavine-lista w-1/2 space-y-4">
+    {filterMode && filtriraneKategorije.length > 0 && (
+      <div className="filtrirane-kategorije">
+        <h3>Filtrirane kategorije:</h3>
+        <ul>
+          {filtriraneKategorije.map(k => (
+            <li
+              key={k.id}
               onClick={() => {
-                setSelectedCategoryId(null);
+                setSelectedCategoryId(k.id);
                 setFilter('');
                 setFilterMode(false);
                 setSelectedMesavina(null);
               }}
-              style={{cursor: 'pointer', padding: '0.5rem 0'}}
+              className="cursor-pointer underline hover:text-blue-600"
             >
-              Sve kategorije
-            </div>
+              {k.naziv}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
 
-            {kategorije.map(k => (
-              <div
-                key={k.id}
-                className={`kategorija-item ${selectedCategoryId === k.id ? 'aktivna' : ''}`}
-                onClick={() => {
-                  setSelectedCategoryId(k.id);
-                  setFilter('');
-                  setFilterMode(false);
-                  setSelectedMesavina(null);
-                }}
-                style={{cursor: 'pointer', padding: '0.5rem 0'}}
-              >
-                <div className="kategorija-naziv">{k.naziv}</div>
-                <div className="kategorija-opis">{k.opis}</div>
-              </div>
-            ))}
-          </div>
-        )}
+    {mesavineZaPrikaz.length === 0 && !loading && (
+      <p className="text-gray-600">Nema mešavina za prikaz.</p>
+    )}
 
-        <div className="mesavine-lista" style={{overflowY: 'auto'}}>
-          {filterMode && (
-            <>
-              {filtriraneKategorije.length > 0 && (
-                <div className="filtrirane-kategorije">
-                  <h3>Filtrirane kategorije:</h3>
-                  <ul>
-                    {filtriraneKategorije.map(k => (
-                      <li
-                        key={k.id}
-                        onClick={() => {
-                          setSelectedCategoryId(k.id);
-                          setFilter('');
-                          setFilterMode(false);
-                          setSelectedMesavina(null);
-                        }}
-                        style={{cursor: 'pointer'}}
-                      >
-                        {k.naziv}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {filtriraneMesavine.length === 0 && !loading && (
-                <p className="nema-mešavina-tekst">Nema mešavina koje odgovaraju filteru.</p>
-              )}
-              {filtriraneMesavine.map(m => (
-                <div
-                  key={m.id}
-                  className={`mesavina-kartica ${selectedMesavina?.id === m.id ? 'aktivna' : ''}`}
-                  onClick={() => setSelectedMesavina(m)}
-                  style={{cursor: 'pointer', border: '1px solid #ddd', marginBottom: '0.5rem', padding: '0.5rem', display: 'flex', gap: '1rem'}}
-                >
-                  <img src={m.fotografija} alt={m.naziv} className="mesavina-slika" style={{width: '280px', height: '280px', objectFit: 'cover'}} />
-                  <div>
-                    <h3 className="mesavina-naziv">{m.naziv}</h3>
-                    <p className="mesavina-opis">{m.opis}</p>
-                    <p className="mesavina-cena">
-                      Cena: {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-
-          {!filterMode && (
-            <>
-              {mesavineZaPrikaz.length === 0 && !loading && (
-                <p className="nema-mešavina-tekst">Nema mešavina za prikaz.</p>
-              )}
-              {mesavineZaPrikaz.map(m => (
-                <div
-                  key={m.id}
-                  className={`mesavina-kartica ${selectedMesavina?.id === m.id ? 'aktivna' : ''}`}
-                  onClick={() => setSelectedMesavina(m)}
-                  style={{cursor: 'pointer', border: '1px solid #ddd', marginBottom: '0.5rem', padding: '0.5rem', display: 'flex', gap: '1rem'}}
-                >
-                  <img src={m.fotografija} alt={m.naziv} className="mesavina-slika" style={{width: '80px', height: '80px', objectFit: 'cover'}} />
-                  <div>
-                    <h3 className="mesavina-naziv">{m.naziv}</h3>
-                    <p className="mesavina-opis">{m.opis}</p>
-                    <p className="mesavina-cena">
-                      Cena: {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
-        </div>
-
-        <div className="detalji-mesavine" style={{borderLeft: '1px solid #ccc', paddingLeft: '1rem', overflowY: 'auto'}}>
-          {!selectedMesavina && <p>Izaberite mešavinu za detalje</p>}
-          {selectedMesavina && (
-            <>
-              <h2 className="detalji-naziv">{selectedMesavina.naziv}</h2>
-              <img
-                src={selectedMesavina.fotografija}
-                alt={selectedMesavina.naziv}
-                className="detalji-slika"
-                style={{width: '100%', maxHeight: '200px', objectFit: 'cover'}}
-              />
-              <p className="detalji-opis">{selectedMesavina.opis}</p>
-              <p className="detalji-cena">
-                <strong>Cena:</strong> {typeof selectedMesavina.cena === 'number' ? selectedMesavina.cena.toFixed(2) : 'N/A'} RSD
-              </p>
-
-              <h3>Sastojci</h3>
-              <ul className="sastojci-lista" style={{listStyle: 'none', paddingLeft: 0}}>
-                {selectedMesavina.sastojci.map((s, index) => {
-                  const udeoNum = Number(s.udeo);
-                  const cenaNum = Number(s.cenaPoKg);
-
-                  return (
-                    <li key={`${s.id}-${index}`} className="sastojak-item" style={{marginBottom: '1rem', borderBottom: '1px solid #eee', paddingBottom: '0.5rem'}}>
-                      <div className="sastojak-naslov">
-                        <strong>{s.naziv}</strong> ({!isNaN(udeoNum) ? udeoNum.toFixed(1) : 'N/A'}%) - {!isNaN(cenaNum) ? cenaNum.toFixed(2) : 'N/A'} RSD/kg
-                      </div>
-                      <div className="sastojak-opis">{s.opis}</div>
-                      <div className="sastojak-poreklo">Poreklo: {s.poreklo}</div>
-                      <img src={s.fotografija} alt={s.naziv} className="sastojak-slika" style={{width: '100px', height: '100px', objectFit: 'cover', marginTop: '0.5rem'}} />
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
-          )}
+    {mesavineZaPrikaz.map(m => (
+      <div
+        key={m.id}
+        className={`mesavina-kartica cursor-pointer p-4 border rounded-lg shadow hover:bg-gray-50 transition ${
+          selectedMesavina?.id === m.id ? 'border-blue-500' : ''
+        }`}
+        onClick={() => setSelectedMesavina(m)}
+      >
+        <img src={m.fotografija} alt={m.naziv} className="w-full h-40 object-cover rounded" />
+        <div className="mt-2">
+          <h3 className="text-lg font-semibold">{m.naziv}</h3>
+          <p className="text-sm text-gray-600">{m.opis}</p>
+          <p className="font-medium mt-1">
+            Cena: {typeof m.cena === 'number' ? m.cena.toFixed(2) : 'N/A'} RSD
+          </p>
         </div>
       </div>
+    ))}
+  </div>
 
-      {/* Footer na dnu */}
-      <footer className="footer-bar" style={{background: '#f5f5f5', padding: '1rem', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #ddd'}}>
+  <div className="detalji-mesavine w-1/2 bg-white rounded-xl shadow p-6">
+    {!selectedMesavina ? (
+      <p className="text-gray-500">Izaberite mešavinu za detalje</p>
+    ) : (
+      <>
+        <h2 className="text-2xl font-bold mb-2">{selectedMesavina.naziv}</h2>
+        <img
+          src={selectedMesavina.fotografija}
+          alt={selectedMesavina.naziv}
+          className="w-full h-48 object-cover rounded mb-4"
+        />
+        <p className="mb-2">{selectedMesavina.opis}</p>
+        <p className="text-lg font-semibold text-green-700 mb-4">
+          Cena: {typeof selectedMesavina.cena === 'number'
+            ? selectedMesavina.cena.toFixed(2)
+            : Number(selectedMesavina.cena || 0).toFixed(2)} RSD
+        </p>
+
+        <h3 className="font-semibold text-xl mb-2">Sastojci</h3>
+        <ul className="space-y-3">
+          {selectedMesavina.sastojci.map((s, index) => (
+            <li key={`${s.id}-${index}`} className="border rounded p-3">
+              <p><strong>Udeo:</strong> {s.udeo !== undefined ? Number(s.udeo).toFixed(2) : '0.00'}%</p>
+              <p className="text-sm">{s.opis}</p>
+              <p className="text-sm text-gray-600">Poreklo: {s.poreklo}</p>
+              <img src={s.fotografija} alt={s.naziv} className="w-full h-32 object-cover rounded mt-2" />
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
+  </div>
+</div>
+
+
+      <footer className="footer-bar">
         <div>
           <p><strong>Kafetalog d.o.o.</strong></p>
           <p>Adresa: Ulica Španskih Boraca 18, Beograd</p>
@@ -308,7 +235,7 @@ const Katalog = () => {
           <p>Email: kontakt@kafetalog.rs</p>
         </div>
         <div>
-          <button onClick={() => navigate('/kontakt')} style={{cursor: 'pointer', padding: '0.5rem 1rem'}}>
+          <button onClick={() => navigate('/kontakt')}>
             Kontakt stranica
           </button>
         </div>
