@@ -1,7 +1,7 @@
 ﻿import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import { AdminPanel } from './pages/AdminPanel';
+import Dashboard from './pages/AdminDashboard';
+import { AdminPanel } from './pages/AdminPanelDodajMesavinu';
 import Katalog from './pages/Katalog';
 import ListaMesavina from './pages/ListaMesavina';
 import Kontakt from "./pages/Kontakt";
