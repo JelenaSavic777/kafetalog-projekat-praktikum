@@ -1,5 +1,7 @@
 ﻿import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import '../styles/index.css';
+
 
 export default function Login() {
   const [username, setUsername] = useState('');
