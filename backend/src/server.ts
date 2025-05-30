@@ -4,8 +4,9 @@ import blendRoutes from './routes/blend';
 import mesavineRoutes from './routes/mesavine';
 import katalogRoutes from './routes/katalog';
 import sastojciRoutes from './routes/sastojci';
-
 import cors from 'cors';
+import kategorijeRoutes from './routes/kategorije';
+
 
 
 const app = express();
@@ -14,6 +15,7 @@ const PORT = 4000;
 app.use(express.json());
 app.use('/api/sastojci', sastojciRoutes);
 
+app.use('/api/kategorije', kategorijeRoutes);
 
 app.use(cors({
   origin: (origin, callback) => {
