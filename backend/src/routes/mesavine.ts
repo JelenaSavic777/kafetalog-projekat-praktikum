@@ -5,36 +5,46 @@ const router = Router();
 
 router.get('/', async (req, res) => {
   try {
+    // Dohvatanje mešavina koje nisu sakrivene
     const [mesavine] = await db.execute(
-      `SELECT id, naziv, opis, fotografija, cena FROM mesavina WHERE prikazana = 1`
+      `SELECT id, naziv, opis, fotografija, ukupna_cena FROM mesavine WHERE sakriven = 0`
     );
 
+    // Dohvatanje sastojaka za mešavine
     const [sastojci] = await db.execute(
-      `SELECT s.id, s.naziv, s.fotografija, ms.udeo, ms.mesavinaId
-       FROM sastojak s
-       JOIN mesavina_sastojak ms ON s.id = ms.sastojakId`
+      `SELECT s.id, s.naziv, s.fotografija, ms.udeo, ms.mesavina_id
+       FROM sastojci s
+       JOIN mesavina_sastojci ms ON s.id = ms.sastojak_id`
     );
 
+    // Dohvatanje kategorija za mešavine
     const [kategorije] = await db.execute(
-      `SELECT km.mesavinaId, k.naziv
-       FROM kategorija k
-       JOIN kategorija_mesavina km ON k.id = km.kategorijaId`
+      `SELECT mk.mesavina_id, k.naziv
+       FROM kategorije k
+       JOIN mesavina_kategorije mk ON k.id = mk.kategorija_id`
     );
 
+    // Grupisanje sastojaka po mesavini
     const sastojciMap = (sastojci as any[]).reduce((acc, s) => {
-      if (!acc[s.mesavinaId]) acc[s.mesavinaId] = [];
-      acc[s.mesavinaId].push(s);
+      if (!acc[s.mesavina_id]) acc[s.mesavina_id] = [];
+      acc[s.mesavina_id].push(s);
       return acc;
     }, {} as Record<number, any[]>);
 
+    // Grupisanje kategorija po mesavini
     const kategorijeMap = (kategorije as any[]).reduce((acc, k) => {
-      if (!acc[k.mesavinaId]) acc[k.mesavinaId] = [];
-      acc[k.mesavinaId].push(k.naziv);
+      if (!acc[k.mesavina_id]) acc[k.mesavina_id] = [];
+      acc[k.mesavina_id].push(k.naziv);
       return acc;
     }, {} as Record<number, string[]>);
 
+    // Spajanje podataka
     const rezultat = (mesavine as any[]).map(m => ({
-      ...m,
+      id: m.id,
+      naziv: m.naziv,
+      opis: m.opis,
+      fotografija: m.fotografija,
+      cena: m.ukupna_cena,
       sastojci: sastojciMap[m.id] || [],
       kategorije: kategorijeMap[m.id] || []
     }));
