@@ -20,7 +20,7 @@ export function AdminPanelDodajMesavinu() {
   const [fotografija, setFotografija] = useState('');
   const [sastojci, setSastojci] = useState<{ id: number; udeo: number }[]>([]);
   const [kategorije, setKategorije] = useState<number[]>([]);
-  const [novaKategorija, setNovaKategorija] = useState('');
+  const [novaKategorija] = useState('');
 
   const [sviSastojci, setSviSastojci] = useState<Sastojak[]>([]);
   const [sveKategorije, setSveKategorije] = useState<Kategorija[]>([]);
@@ -60,7 +60,6 @@ export function AdminPanelDodajMesavinu() {
 
     const finalKategorije = [...kategorije];
 
-    // Ako postoji nova kategorija, dodaj je
     if (novaKategorija.trim()) {
       const res = await fetch('/api/kategorije', {
         method: 'POST',
@@ -80,16 +79,38 @@ export function AdminPanelDodajMesavinu() {
     const res = await fetch('/api/mesavine', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sifra, naziv, opis, fotografija, sastojci, kategorije: finalKategorije }),
+      body: JSON.stringify({
+        sifra,
+        naziv,
+        opis,
+        sastojci,
+        kategorije: finalKategorije,
+        fotografija: fotografija.trim() !== '' ? fotografija.trim() : null,
+      }),
     });
-    const data = await res.json();
+
+    let data;
+    try {
+      const contentType = res.headers.get('Content-Type');
+      if (contentType && contentType.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        alert(`Neočekivan odgovor servera:\n${text}`);
+        return;
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      alert('Greška prilikom obrade odgovora sa servera.');
+      return;
+    }
 
     if (res.ok) {
       alert('Mešavina uspešno dodata');
       window.open('/', '_blank');
       navigate('/admin');
     } else {
-      alert(data.error || 'Greška prilikom dodavanja');
+      alert(data?.error || 'Greška prilikom dodavanja');
     }
   };
 
@@ -102,8 +123,21 @@ export function AdminPanelDodajMesavinu() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <input value={sifra} onChange={(e) => setSifra(e.target.value)} required placeholder="Šifra" className="border p-3 rounded-lg w-full" />
             <input value={naziv} onChange={(e) => setNaziv(e.target.value)} required placeholder="Naziv" className="border p-3 rounded-lg w-full" />
-            <input value={fotografija} onChange={(e) => setFotografija(e.target.value)} placeholder="Fotografija (URL)" className="border p-3 rounded-lg w-full" />
             <textarea value={opis} onChange={(e) => setOpis(e.target.value)} placeholder="Opis" className="border p-3 rounded-lg w-full col-span-2" />
+            <input
+              value={fotografija}
+              onChange={(e) => setFotografija(e.target.value)}
+              placeholder="URL fotografije (opciono)"
+              className="border p-3 rounded-lg w-full col-span-2"
+            />
+            {/* Pregled slike ako postoji */}
+            {fotografija.trim() && (
+              <img
+                src={fotografija}
+                alt="Pregled slike"
+                className="w-40 h-40 object-cover rounded-lg border"
+              />
+            )}
           </div>
 
           <div>
@@ -152,13 +186,6 @@ export function AdminPanelDodajMesavinu() {
                 </label>
               ))}
             </div>
-
-            <input
-              value={novaKategorija}
-              onChange={(e) => setNovaKategorija(e.target.value)}
-              placeholder="Unesi novu kategoriju (opcionalno)"
-              className="border p-2 rounded w-full mt-4"
-            />
           </div>
 
           <button type="submit" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">
