@@ -11,7 +11,7 @@ interface Kategorija {
   naziv: string;
 }
 
-export function AdminPanel() {
+export function AdminPanelDodajMesavinu() {
   const navigate = useNavigate();
 
   const [sifra, setSifra] = useState('');
@@ -20,6 +20,7 @@ export function AdminPanel() {
   const [fotografija, setFotografija] = useState('');
   const [sastojci, setSastojci] = useState<{ id: number; udeo: number }[]>([]);
   const [kategorije, setKategorije] = useState<number[]>([]);
+  const [novaKategorija, setNovaKategorija] = useState('');
 
   const [sviSastojci, setSviSastojci] = useState<Sastojak[]>([]);
   const [sveKategorije, setSveKategorije] = useState<Kategorija[]>([]);
@@ -43,26 +44,54 @@ export function AdminPanel() {
     setSastojci(novi);
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  const res = await fetch('/api/mesavine', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sifra, naziv, opis, fotografija, sastojci, kategorije }),
-  });
-  const data = await res.json();
-  if (res.ok) {
-    alert('Mešavina uspešno dodata');
-    
-    // Otvori katalog u novom tabu
-    window.open('/', '_blank');
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    // Preusmeri na admin dashboard
-    navigate('/admin');
-  } else {
-    alert(data.error || 'Greška prilikom dodavanja');
-  }
-};
+    const totalUdeo = sastojci.reduce((sum, s) => sum + s.udeo, 0);
+    if (totalUdeo !== 100) {
+      alert(`Ukupan udeo sastojaka mora biti 100%. Trenutno: ${totalUdeo}%`);
+      return;
+    }
+
+    if (sastojci.some((s) => s.id === 0)) {
+      alert('Molimo odaberite validne sastojke.');
+      return;
+    }
+
+    const finalKategorije = [...kategorije];
+
+    // Ako postoji nova kategorija, dodaj je
+    if (novaKategorija.trim()) {
+      const res = await fetch('/api/kategorije', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ naziv: novaKategorija }),
+      });
+
+      if (res.ok) {
+        const nova = await res.json();
+        finalKategorije.push(nova.id);
+      } else {
+        alert('Greška pri dodavanju nove kategorije.');
+        return;
+      }
+    }
+
+    const res = await fetch('/api/mesavine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sifra, naziv, opis, fotografija, sastojci, kategorije: finalKategorije }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('Mešavina uspešno dodata');
+      window.open('/', '_blank');
+      navigate('/admin');
+    } else {
+      alert(data.error || 'Greška prilikom dodavanja');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -123,6 +152,13 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </label>
               ))}
             </div>
+
+            <input
+              value={novaKategorija}
+              onChange={(e) => setNovaKategorija(e.target.value)}
+              placeholder="Unesi novu kategoriju (opcionalno)"
+              className="border p-2 rounded w-full mt-4"
+            />
           </div>
 
           <button type="submit" className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition">

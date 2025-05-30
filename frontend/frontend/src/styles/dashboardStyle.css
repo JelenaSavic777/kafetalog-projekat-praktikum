@@ -120,3 +120,41 @@
     font-size: 0.85rem;
     color: #9ca3af;
 }
+
+.card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.action-button {
+    font-size: 1.2rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.action-button:hover {
+    transform: scale(1.2);
+}
+
+.edit-input {
+    width: 100%;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.btn-save {
+    background-color: #3b82f6;
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+}

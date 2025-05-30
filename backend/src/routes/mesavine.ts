@@ -1,4 +1,4 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response, RequestHandler } from 'express';
 import { body, validationResult } from 'express-validator';
 import db from '../db';
 
@@ -52,20 +52,13 @@ router.get('/', async (req, res) => {
   }
 });
 
-//Dodavanje nove mesavine
-
+// POST /api/mesavine - dodavanje nove mešavine
 router.post(
   '/',
-  body('sifra').isString().trim().notEmpty(),
-  body('naziv').isString().trim().notEmpty(),
-  body('opis').optional().isString(),
-  body('fotografija').optional().isString(),
+  body('sifra').isString().notEmpty(),
+  body('naziv').isString().notEmpty(),
   body('sastojci').isArray({ min: 1 }),
-  body('sastojci.*.id').isInt(),
-  body('sastojci.*.udeo').isFloat({ min: 0 }),
-  body('kategorije').optional().isArray(),
-  body('kategorije.*').isInt(),
-  async (req: Request, res: Response, next: NextFunction) => {
+  (async (req: Request, res: Response): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ errors: errors.array() });
@@ -75,10 +68,28 @@ router.post(
     try {
       const { sifra, naziv, opis, fotografija, sastojci, kategorije } = req.body;
 
+      const ukupno = sastojci.reduce((sum: number, s: any) => sum + s.udeo, 0);
+      if (ukupno !== 100) {
+        res.status(400).json({ error: 'Ukupan udeo mora biti tačno 100%' });
+        return;
+      }
+
+      let ukupnaCena = 0;
+      for (const s of sastojci) {
+        const [rez]: any = await db.execute('SELECT cena_po_kg FROM sastojci WHERE id = ?', [s.id]);
+        if (!rez.length) {
+          res.status(400).json({ error: `Sastojak sa ID ${s.id} ne postoji` });
+          return;
+        }
+        const cena = rez[0].cena_po_kg;
+        ukupnaCena += (cena * s.udeo) / 100;
+      }
+
       const [result]: any = await db.execute(
-        'INSERT INTO mesavine (sifra, naziv, opis, fotografija) VALUES (?, ?, ?, ?)',
-        [sifra, naziv, opis, fotografija]
+        'INSERT INTO mesavine (sifra, naziv, opis, fotografija, ukupna_cena) VALUES (?, ?, ?, ?, ?)',
+        [sifra, naziv, opis, fotografija, ukupnaCena]
       );
+
       const mesavinaId = result.insertId;
 
       for (const s of sastojci) {
@@ -95,13 +106,72 @@ router.post(
         );
       }
 
-      res.json({ success: true, id: mesavinaId });
+      res.json({ success: true, id: mesavinaId, cena: ukupnaCena });
     } catch (err) {
       console.error('Greška prilikom dodavanja mešavine:', err);
       res.status(500).json({ error: 'Greška na serveru' });
     }
-  }
+  }) as RequestHandler
 );
 
+// PUT /api/mesavine/:id - izmena samo naziva, opisa i sastojaka
+router.put('/:id', (async (req: Request, res: Response) => {
+  try {
+    const mesavinaId = req.params.id;
+    const { naziv, opis, sastojci } = req.body;
+
+    if (!Array.isArray(sastojci) || sastojci.length === 0) {
+      return res.status(400).json({ error: 'Sastojci su obavezni' });
+    }
+
+    const ukupno = sastojci.reduce((sum: number, s: any) => sum + s.udeo, 0);
+    if (ukupno !== 100) {
+      return res.status(400).json({ error: 'Ukupan udeo mora biti tačno 100%' });
+    }
+
+    let ukupnaCena = 0;
+    for (const s of sastojci) {
+      const [rez]: any = await db.execute('SELECT cena_po_kg FROM sastojci WHERE id = ?', [s.id]);
+      if (!rez.length) {
+        return res.status(400).json({ error: `Sastojak sa ID ${s.id} ne postoji` });
+      }
+      ukupnaCena += (rez[0].cena_po_kg * s.udeo) / 100;
+    }
+
+    await db.execute(
+      'UPDATE mesavine SET naziv = ?, opis = ?, ukupna_cena = ? WHERE id = ?',
+      [naziv, opis, ukupnaCena, mesavinaId]
+    );
+
+    await db.execute('DELETE FROM mesavina_sastojci WHERE mesavina_id = ?', [mesavinaId]);
+
+    for (const s of sastojci) {
+      await db.execute(
+        'INSERT INTO mesavina_sastojci (mesavina_id, sastojak_id, udeo) VALUES (?, ?, ?)',
+        [mesavinaId, s.id, s.udeo]
+      );
+    }
+
+    res.json({ success: true, id: mesavinaId, cena: ukupnaCena });
+  } catch (err) {
+    console.error('Greška prilikom izmene mešavine:', err);
+    res.status(500).json({ error: 'Greška na serveru' });
+  }
+}) as RequestHandler);
+
+
+// DELETE /api/mesavine/:id - brisanje mešavine
+router.delete('/:id', async (req: Request, res: Response) => {
+  try {
+    const mesavinaId = req.params.id;
+    await db.execute('DELETE FROM mesavina_sastojci WHERE mesavina_id = ?', [mesavinaId]);
+    await db.execute('DELETE FROM mesavina_kategorije WHERE mesavina_id = ?', [mesavinaId]);
+    await db.execute('DELETE FROM mesavine WHERE id = ?', [mesavinaId]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Greška prilikom brisanja mešavine:', err);
+    res.status(500).json({ error: 'Greška prilikom brisanja' });
+  }
+});
 
 export default router;

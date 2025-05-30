@@ -1,10 +1,10 @@
 ﻿import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
-import Dashboard from './pages/AdminDashboard';
-import { AdminPanel } from './pages/AdminPanelDodajMesavinu';
+import AdminDashboard from './pages/AdminDashboard';
 import Katalog from './pages/Katalog';
 import ListaMesavina from './pages/ListaMesavina';
 import Kontakt from "./pages/Kontakt";
+import {AdminPanelDodajMesavinu} from './pages/AdminPanelDodajMesavinu';
 //import './styles/index.css';
 
 function App() {
@@ -13,8 +13,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Katalog />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/mesavine/novi" element={<AdminPanel />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/mesavine/novi" element={<AdminPanelDodajMesavinu />} />
         <Route path="/admin/mesavine/lista" element={<ListaMesavina />} />
                 <Route path="/kontakt" element={<Kontakt />} />
       </Routes>
