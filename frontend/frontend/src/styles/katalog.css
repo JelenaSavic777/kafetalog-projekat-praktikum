@@ -306,3 +306,85 @@ h1 {
 .filter-button:hover {
     color: #007bff;
 }
+
+.detalji-mesavine {
+    width: 40%;
+    padding: 20px;
+    border-left: 1px solid #ccc;
+    overflow-y: auto;
+    max-height: 600px;
+    box-sizing: border-box;
+    background-color: #faf5ef;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #4a3e31;
+}
+
+.detalji-naziv {
+    margin-bottom: 12px;
+    color: #5a4222;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.detalji-slika {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    object-fit: cover;
+}
+
+.detalji-opis {
+    margin-bottom: 12px;
+    line-height: 1.4;
+    color: #6b5847;
+}
+
+.detalji-cena {
+    margin-bottom: 20px;
+    font-weight: 700;
+    color: #6b4f35;
+}
+
+.sastojci-lista {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.sastojak-item {
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.sastojak-naslov {
+    font-weight: 600;
+    color: #7b5e3c;
+    margin-bottom: 6px;
+    flex: 1 1 auto;
+}
+
+.sastojak-opis {
+    font-size: 0.9rem;
+    color: #8b7d6b;
+    margin-bottom: 8px;
+    flex: 2 2 auto;
+}
+
+.sastojak-slika {
+    width: 90px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
