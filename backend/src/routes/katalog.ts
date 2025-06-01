@@ -39,7 +39,6 @@ router.get('/', async (req, res) => {
       { id: -1, naziv: 'Nekategorizovane', mesavine: [] }, // fallback
     ];
 
-    // Mešavine (left join da obuhvati i one bez kategorije)
     const [mesavineRows] = await db.execute(`
       SELECT m.id, m.naziv, m.opis, m.fotografija, m.ukupna_cena AS cena, mk.kategorija_id AS kategorijaId
       FROM mesavine m

@@ -8,7 +8,6 @@ const PORT = 4000;
 app.use(cors());
 app.use(express.json());
 
-// Registruj ruter
 app.use('/api/mesavine', mesavineRouter); 
 app.listen(PORT, () => {
   console.log(`Server radi na http://localhost:${PORT}`);

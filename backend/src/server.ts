@@ -1,6 +1,5 @@
 ﻿import express from 'express';
 import authRoutes from './routes/authRoutes';
-import blendRoutes from './routes/blend';
 import mesavineRoutes from './routes/mesavine';
 import katalogRoutes from './routes/katalog';
 import sastojciRoutes from './routes/sastojci';
@@ -45,7 +44,6 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/blend', blendRoutes);
 app.use('/api/mesavine', mesavineRoutes);
 app.use('/api/katalog', katalogRoutes);
 

@@ -5,7 +5,6 @@ import Katalog from './pages/Katalog';
 import ListaMesavina from './pages/ListaMesavina';
 import Kontakt from "./pages/Kontakt";
 import {AdminPanelDodajMesavinu} from './pages/AdminPanelDodajMesavinu';
-//import './styles/index.css';
 
 function App() {
   return (

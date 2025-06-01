@@ -3,7 +3,6 @@ import db from '../db';
 
 const router = Router();
 
-// GET /api/kategorije - lista svih kategorija
 router.get('/', async (req, res) => {
   try {
     const [rows] = await db.execute('SELECT id, naziv FROM kategorije');
